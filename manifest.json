@@ -1,0 +1,23 @@
+{
+    "manifest_version": 2,
+    "name": "Screenshot Extension",
+    "version": "1.0",
+    "description": "Chụp ảnh màn hình tab hiện tại",
+    "permissions": [
+        "activeTab",
+        "tabs",
+        "<all_urls>",
+        "identity",
+        "storage"
+    ],
+    "content_security_policy": "script-src 'self' https://apis.google.com; object-src 'self'",
+    "browser_action": {
+        "default_popup": "popup.html"
+    },
+    "oauth2": {
+        "client_id": "27268436054-h19fvt3m94jmo9qbktg5t5gm3d3i1ves.apps.googleusercontent.com",
+        "scopes": [
+            "https://www.googleapis.com/auth/drive.file"
+        ]
+    }
+}

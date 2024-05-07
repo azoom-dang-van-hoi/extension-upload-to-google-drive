@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Screenshot Extension</title>
+    <script src="https://apis.google.com/js/api.js"></script>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <button id="connectDriveBtn" class="button">Connect Drive</button>
+    <div class="app" id="app">
+      <div class="row">
+        <label class="label" for="folderId">Folder ID: </label>
+        <input class="input" type="text" id="folderId" />
+      </div>
+      <div class="row">
+        <label class="label" for="inputElement">Image: </label>
+        <input class="input" type="text" id="inputElement" />
+      </div>
+      <div class="files" id="files"></div>
+    </div>
+    <script src="popup.js"></script>
+  </body>
+</html>

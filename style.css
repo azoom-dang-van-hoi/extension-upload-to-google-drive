@@ -1,0 +1,115 @@
+/* normalize css starts here */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+/* normalize css ends here */
+
+html {
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial,
+    sans-serif;
+  color: #222;
+}
+
+body {
+  width: 400px;
+  margin: 0;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  border: 1px solid #d1d5da;
+  border-radius: 5px;
+  background-color: #f6f8fa;
+  overflow-y: auto;
+}
+
+.app .row {
+  margin-top: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.app .row .label {
+  width: 60px;
+  display: inline-block;
+}
+
+.app .row .input {
+  width: 264px;
+  border: 1px solid #c2c2c2;
+  padding: 8px 16px;
+}
+
+.button {
+  border: 0;
+  display: inline-block;
+  padding: 10px 20px;
+  margin-right: 4px;
+  margin-left: 4px;
+  background-color: bisque;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: transform 0.2s ease;
+  user-select: none;
+}
+
+.button:focus {
+  outline: none;
+}
+
+.button:hover {
+  transform: scale(1.1);
+}
+
+.progressContainer {
+  width: 100px;
+  border: 1px solid #c2c2c2;
+  height: 10px;
+  margin-top: 6px;
+  position: relative;
+  --progress: 0%;
+}
+
+.progressContainer::before {
+  content: "";
+  background: blue;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: var(--progress);
+}
+
+.files {
+  margin-top: 12px;
+  max-height: 300px;
+  overflow-y: scroll;
+}
+
+.files .item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.files .item .copy {
+  padding: 6px 12px;
+  border: none;
+  cursor: pointer;
+}
+
+.files .item .copy:hover {
+  background: rgb(0, 136, 255);
+}
+
+.files .item .delete {
+  padding: 6px 12px;
+  border: none;
+  cursor: pointer;
+  color: red;
+}
