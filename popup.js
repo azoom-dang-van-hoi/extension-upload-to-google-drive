@@ -6,14 +6,14 @@ let folderId =
 
 document.addEventListener("DOMContentLoaded", init)
 
-inputElement.addEventListener("paste", (event) => {
+inputElement.addEventListener("paste", async (event) => {
   const clipboardData = event.clipboardData
   const items = clipboardData.items
 
   for (const item of items) {
     if (item.type.indexOf("image") === 0) {
       const blob = item.getAsFile()
-      uploadToDrive(blob)
+      uploadToDrive(await blobToBase64(blob))
       break
     }
   }
@@ -40,9 +40,28 @@ function init() {
       }
     }
   )
+  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    const loadingElement = document.getElementById(request.loadingElementId)
+    if (request.type === "uploaded") {
+      loadingElement.remove()
+      addNewUrl({ url: request.content.webViewLink, id: request.content.id })
+      renderUrls(screenshotUrls)
+    } else if (request.type === "uploading") {
+      loadingElement.style.setProperty(`--progress`, `${progress}%`)
+    }
+  })
   screenshotUrls.push(...loadUrls())
   renderUrls(screenshotUrls)
   folderElement.value = folderId
+}
+
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
 }
 
 function uploadToDrive(imageData) {
@@ -53,53 +72,26 @@ function uploadToDrive(imageData) {
     }
     const fileContainer = document.getElementById("files")
     const loadingElement = document.createElement("div")
+    loadingElement.id = `loading-container-${new Date().getTime()}`
     loadingElement.classList.add("progressContainer")
     fileContainer.appendChild(loadingElement)
 
     // Tạo file metadata
-    var fileMetadata = {
+    const fileMetadata = {
       name: `screenshot-${new Date().getTime()}.png`,
       mimeType: "image/png",
-      parents: folderId.split(";"),
+      parents: [folderId],
     }
 
-    const url = {}
-
-    // Upload file lên Google Drive
-    var form = new FormData()
-    form.append(
-      "metadata",
-      new Blob([JSON.stringify(fileMetadata)], { type: "application/json" })
-    )
-    form.append("file", imageData)
-
-    var xhr = new XMLHttpRequest()
-    xhr.open(
-      "POST",
-      "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart"
-    )
-    xhr.setRequestHeader("Authorization", "Bearer " + token)
-    xhr.responseType = "json"
-    xhr.onload = async function () {
-      url.id = xhr.response.id
-      const result = await fetch(
-        `https://www.googleapis.com/drive/v3/files/${url.id}?fields=id,name,mimeType,thumbnailLink,webViewLink`,
-        {
-          headers: {
-            Authorization: "Bearer " + token,
-          },
-        }
-      ).then((data) => data.json())
-      url.url = result.webViewLink
-      loadingElement.remove()
-      addNewUrl(url)
-      renderUrls(screenshotUrls)
-    }
-    xhr.upload.onprogress = function (e) {
-      const progress = (e.loaded / e.total) * 100
-      loadingElement.style.setProperty(`--progress`, `${progress}%`)
-    }
-    xhr.send(form)
+    chrome.runtime.sendMessage({
+      type: "upload",
+      form: {
+        fileMetadata,
+        imageData
+      },
+      token,
+      loadingElementId: loadingElement.id,
+    })
   })
 }
 
