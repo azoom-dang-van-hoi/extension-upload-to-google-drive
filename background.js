@@ -16,6 +16,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     xhr.setRequestHeader("Authorization", "Bearer " + token)
     xhr.responseType = "json"
     xhr.onload = async function () {
+      addNewUrl({ url: xhr.response.webViewLink, id: xhr.response.id })
       chrome.runtime.sendMessage({
         type: "uploaded",
         content: xhr.response,
@@ -24,7 +25,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
     xhr.upload.onprogress = function (e) {
       const progress = (e.loaded / e.total) * 100
-      chrome.runtime.sendMessage("uploading", {
+      chrome.runtime.sendMessage({
         type: "uploading",
         loadingElementId: request.loadingElementId,
         progress,
@@ -40,4 +41,13 @@ function base64ToBlob(base64String) {
   const base64Data = base64String.replace(/^data:image\/.*;base64,/, "")
   const buffer = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0))
   return new Blob([buffer], { type: contentType })
+}
+
+function addNewUrl({ url, id }) {
+  const screenshotUrls = JSON.parse(
+    localStorage.getItem("screenshotUrls") || "[]"
+  )
+  if (screenshotUrls.find((item) => item.id === id)) return
+  screenshotUrls.push({ url, id })
+  localStorage.setItem("screenshotUrls", JSON.stringify(screenshotUrls))
 }

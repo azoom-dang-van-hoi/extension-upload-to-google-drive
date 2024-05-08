@@ -1,8 +1,9 @@
 const inputElement = document.getElementById("inputElement")
 const folderElement = document.getElementById("folderId")
+const changeAccountElement = document.getElementById("changeAccount")
+const connectDriveBtn = document.getElementById("connectDriveBtn")
 let screenshotUrls = []
-let folderId =
-  localStorage.getItem("driverFolderId") || "1R9mHauxI3rCOZln1tJfWz-ZHlgogIqJF"
+let folderId = localStorage.getItem("driverFolderId")
 
 document.addEventListener("DOMContentLoaded", init)
 
@@ -22,6 +23,47 @@ inputElement.addEventListener("paste", async (event) => {
 folderElement.addEventListener("input", (e) => {
   folderId = e.target.value
   localStorage.setItem("driverFolderId", folderId)
+})
+
+changeAccountElement.addEventListener("click", () => {
+  chrome.identity.getAuthToken(
+    {
+      interactive: true,
+    },
+    function (result) {
+      if (chrome.runtime.lastError) {
+        console.log(chrome.runtime.lastError)
+        return
+      }
+      chrome.identity.clearAllCachedAuthTokens(() => {
+        console.log("clear cache done")
+        folderId = ""
+        screenshotUrls = []
+        localStorage.removeItem("screenshotUrls")
+        localStorage.removeItem("driverFolderId")
+        renderUrls(screenshotUrls)
+
+        const contentElement = document.getElementById("app")
+        contentElement.style.display = "none"
+        const connectDriveBtn = document.getElementById("connectDriveBtn")
+        connectDriveBtn.style.display = "inline-block"
+      })
+    }
+  )
+})
+
+connectDriveBtn.addEventListener("click", () => {
+  chrome.identity.getAuthToken(
+    {
+      interactive: true,
+    },
+    function () {
+      const connectDriveBtn = document.getElementById("connectDriveBtn")
+      connectDriveBtn.style.display = "none"
+      const contentElement = document.getElementById("app")
+      contentElement.style.display = "block"
+    }
+  )
 })
 
 function init() {
@@ -47,7 +89,7 @@ function init() {
       addNewUrl({ url: request.content.webViewLink, id: request.content.id })
       renderUrls(screenshotUrls)
     } else if (request.type === "uploading") {
-      loadingElement.style.setProperty(`--progress`, `${progress}%`)
+      loadingElement.style.setProperty(`--progress`, `${request.progress}%`)
     }
   })
   screenshotUrls.push(...loadUrls())
@@ -57,11 +99,11 @@ function init() {
 
 function blobToBase64(blob) {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
+    const reader = new FileReader()
+    reader.onloadend = () => resolve(reader.result)
+    reader.onerror = reject
+    reader.readAsDataURL(blob)
+  })
 }
 
 function uploadToDrive(imageData) {
@@ -87,7 +129,7 @@ function uploadToDrive(imageData) {
       type: "upload",
       form: {
         fileMetadata,
-        imageData
+        imageData,
       },
       token,
       loadingElementId: loadingElement.id,
@@ -100,8 +142,8 @@ function getUrlById(id) {
 }
 
 function addNewUrl({ url, id }) {
+  if (screenshotUrls.find(item => item.id === id)) return
   screenshotUrls.push({ url, id })
-  localStorage.setItem("screenshotUrls", JSON.stringify(screenshotUrls))
 }
 
 function deleteUrl(id) {
@@ -114,6 +156,8 @@ function loadUrls() {
 }
 
 function renderUrls(urls = []) {
+  const filesElement = document.getElementById("files")
+  filesElement.innerHTML = ""
   urls.forEach((url) => {
     addFileItem(url)
   })

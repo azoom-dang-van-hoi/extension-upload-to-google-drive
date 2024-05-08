@@ -20,9 +20,11 @@
         "default_popup": "popup.html"
     },
     "oauth2": {
-        "client_id": "27268436054-o7u0v5t7aq7q8oo49a0p7p9nmj8tn5ie.apps.googleusercontent.com",
+        "client_id": "27268436054-h19fvt3m94jmo9qbktg5t5gm3d3i1ves.apps.googleusercontent.com",
         "scopes": [
-            "https://www.googleapis.com/auth/drive.file"
+            "https://www.googleapis.com/auth/drive",
+            "https://www.googleapis.com/auth/drive.file",
+            "https://www.googleapis.com/auth/drive.metadata"
         ]
     }
 }
