@@ -2,6 +2,9 @@ const inputElement = document.getElementById("inputElement")
 const folderElement = document.getElementById("folderId")
 const changeAccountElement = document.getElementById("changeAccount")
 const connectDriveBtn = document.getElementById("connectDriveBtn")
+const startBtn = document.getElementById("startBtn")
+// const stopBtn = document.getElementById("stopBtn")
+
 let screenshotUrls = []
 let folderId = localStorage.getItem("driverFolderId")
 
@@ -66,6 +69,19 @@ connectDriveBtn.addEventListener("click", () => {
   )
 })
 
+startBtn.addEventListener("click", () => {
+  chrome.identity.getAuthToken(
+    {
+      interactive: true,
+    },
+    function (token) {
+      chrome.runtime.sendMessage({ type: "startRecording", folderId, token })
+    }
+  )
+  startBtn.disabled = true
+  stopBtn.disabled = false
+})
+
 function init() {
   chrome.identity.getAuthToken(
     {
@@ -86,7 +102,11 @@ function init() {
     const loadingElement = document.getElementById(request.loadingElementId)
     if (request.type === "uploaded") {
       loadingElement.remove()
-      addNewUrl({ url: request.content.webViewLink, id: request.content.id })
+      addNewUrl({
+        url: request.content.webViewLink,
+        id: request.content.id,
+        type: request.urlType,
+      })
       renderUrls(screenshotUrls)
     } else if (request.type === "uploading") {
       loadingElement.style.setProperty(`--progress`, `${request.progress}%`)
@@ -141,9 +161,9 @@ function getUrlById(id) {
   return screenshotUrls.find((url) => url.id === id)
 }
 
-function addNewUrl({ url, id }) {
-  if (screenshotUrls.find(item => item.id === id)) return
-  screenshotUrls.push({ url, id })
+function addNewUrl(url) {
+  if (screenshotUrls.find((item) => item.id === url.id)) return
+  screenshotUrls.push(url)
 }
 
 function deleteUrl(id) {
@@ -158,12 +178,14 @@ function loadUrls() {
 function renderUrls(urls = []) {
   const filesElement = document.getElementById("files")
   filesElement.innerHTML = ""
-  urls.forEach((url) => {
-    addFileItem(url)
-  })
+  urls
+    .filter((url) => url.id)
+    .forEach((url, index) => {
+      addFileItem(url, index)
+    })
 }
 
-function addFileItem({ url, id }) {
+function addFileItem({ url, id, type }, index) {
   const filesElement = document.getElementById("files")
   const itemEl = document.createElement("p")
   itemEl.classList.add("item")
@@ -179,7 +201,10 @@ function addFileItem({ url, id }) {
 
   const contentEl = document.createElement("span")
   contentEl.classList.add("content")
-  contentEl.textContent = id
+  contentEl.textContent =
+    type === "video"
+      ? `Recording screen ${index + 1}: ${id}`
+      : `Screenshot ${index + 1}: ${id}`
   itemEl.appendChild(contentEl)
 
   const deleteEl = document.createElement("button")
